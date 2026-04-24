@@ -1,10 +1,4 @@
-Tentu. Untuk repositori GitHub tingkat *enterprise* atau proyek *open-source* profesional, kita harus mengurangi elemen dekoratif (seperti *ASCII art* dan *emoji* berlebihan) dan lebih berfokus pada **keterbacaan teknis, arsitektur, dokumentasi API, dan panduan instalasi**. 
 
-Berikut adalah draf `README.md` versi **Profesional dan Elegan**. Versi ini sangat cocok untuk memikat dewan juri yang berlatar belakang teknis murni atau *recruiter* dari perusahaan IT.
-
-Silakan salin kode di bawah ini:
-
-```markdown
 # SEED: Smart Eco-Expert Detector (MangsaPadi)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
