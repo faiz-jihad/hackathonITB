@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile.web
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend-core:/var/www/html
+    environment:
+      - AI_API_URL=http://ai-engine:8001
+      - DB_HOST=db
+    depends_on:
+      - ai-engine
+      - db
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: backend_core
+    volumes:
+      - db_data:/var/lib/mysql
+
+  ai-engine:
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile.api
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./api-python:/app
+
+volumes:
+  db_data:

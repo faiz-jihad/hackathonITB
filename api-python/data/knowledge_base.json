@@ -1,0 +1,42 @@
+{
+  "Bacterial Leaf Blight (Hawar Daun Bakteri)": {
+    "agronomi_modern": "Penyakit ini disebabkan oleh bakteri Xanthomonas oryzae. Pengendalian modern meliputi penggunaan varietas tahan (seperti Inpari 32 HDB), pengaturan jarak tanam (sistem legowo), dan aplikasi bakterisida berbahan aktif tembaga jika serangan parah.",
+    "kearifan_lokal": "Petani tradisional menggunakan ekstrak daun sirih atau rendaman abu sabut kelapa yang disemprotkan ke daun untuk menekan perkembangan bakteri secara alami."
+  },
+  "Bacterial Leaf Streak (Bercak Daun Bakteri)": {
+    "agronomi_modern": "Disebabkan oleh Xanthomonas oryzae pv. oryzicola. Hindari pemupukan Nitrogen (Urea) berlebih karena memicu kerentanan daun. Gunakan jarak tanam lebar untuk sirkulasi udara.",
+    "kearifan_lokal": "Penggunaan air cucian beras yang didiamkan (fermentasi leri) dicampur dengan ekstrak bawang putih sebagai semprotan pencegah infeksi."
+  },
+  "Bacterial Panicle Blight (Hawar Malai Bakteri)": {
+    "agronomi_modern": "Disebabkan oleh Burkholderia glumae. Penyakit ini menyerang gabah. Penanganan meliputi perlakuan benih (seed treatment) sebelum tanam dan aplikasi fungisida/bakterisida saat fase bunting.",
+    "kearifan_lokal": "Merendam benih dalam larutan garam sebelum disemai untuk memisahkan benih yang hampa dan berpotensi membawa patogen."
+  },
+  "Blast (Penyakit Blas)": {
+    "agronomi_modern": "Disebabkan oleh jamur Pyricularia oryzae. Pemupukan N, P, K yang berimbang sangat penting. Aplikasi fungisida berbahan aktif trisiklazol atau difenokonazol pada fase anakan dan awal berbunga efektif menekan blas.",
+    "kearifan_lokal": "Menyemprotkan larutan dari tumbukan daun mimba (Azadirachta indica) dan rimpang lengkuas sebagai fungisida nabati."
+  },
+  "Brown Spot (Bercak Cokelat)": {
+    "agronomi_modern": "Disebabkan oleh jamur Bipolaris oryzae. Sering muncul pada tanah yang kekurangan nutrisi (terutama Silika, Kalium, dan Mangan). Perbaiki unsur hara tanah dan gunakan pupuk majemuk.",
+    "kearifan_lokal": "Menaburkan abu sekam padi ke lahan pertanian untuk meningkatkan kandungan silika tanah yang memperkuat dinding sel tanaman."
+  },
+  "Dead Heart (Penggerek Batang)": {
+    "agronomi_modern": "Disebabkan oleh larva ngengat (Scirpophaga spp.). Kendalikan dengan insektisida sistemik berbahan aktif fipronil atau klorantraniliprol. Gunakan perangkap cahaya (light trap) untuk menangkap ngengat dewasa.",
+    "kearifan_lokal": "Pelepasan bebek ke sawah pasca panen atau saat vegetatif awal untuk memakan hama, serta penanaman refugia (bunga liar) di galengan untuk menarik predator alami seperti tabuhan parasitoid."
+  },
+  "Downy Mildew (Bulu Embun)": {
+    "agronomi_modern": "Disebabkan oleh jamur Peronosclerospora. Cenderung menyerang saat kelembaban tinggi. Gunakan fungisida sistemik berbahan aktif metalaksil sebagai perlakuan benih.",
+    "kearifan_lokal": "Memastikan lahan tidak tergenang secara terus menerus dengan sistem pengairan berselang (intermittent irrigation) yang diwariskan turun-temurun."
+  },
+  "Hispa (Hama Hispa)": {
+    "agronomi_modern": "Hama kumbang Dicladispa armigera yang memakan klorofil daun. Pengendalian dengan insektisida kontak dan sistemik jika populasi melebihi ambang batas ekonomi.",
+    "kearifan_lokal": "Memotong bagian pucuk daun padi sebelum pindah tanam untuk membuang telur hispa, atau menggunakan ramuan dari daun sirsak sebagai insektisida nabati."
+  },
+  "Normal (Padi Sehat)": {
+    "agronomi_modern": "Tanaman dalam kondisi optimal. Lanjutkan pemeliharaan rutin, monitoring hama penyakit mingguan, dan pemupukan berimbang sesuai fase pertumbuhan.",
+    "kearifan_lokal": "Melakukan syukuran atau doa bersama sebagai bentuk rasa syukur atas tanaman yang sehat dan memohon kelancaran hingga panen."
+  },
+  "Tungro (Penyakit Tungro)": {
+    "agronomi_modern": "Disebabkan oleh virus (RTBV dan RTSV) yang ditularkan oleh Wereng Hijau (Nephotettix virescens). Fokus pada pengendalian vektor (wereng hijau) dengan insektisida berbahan aktif buprofezin atau BPMC, serta tanam serempak.",
+    "kearifan_lokal": "Penanaman serempak dalam satu hamparan (aturan adat subak/kelompok tani) untuk memutus siklus hidup wereng hijau penyebar virus."
+  }
+}

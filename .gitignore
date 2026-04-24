@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Laravel
+/backend-core/vendor/
+/backend-core/node_modules/
+/backend-core/public/storage
+/backend-core/public/hot
+/backend-core/public/build
+/backend-core/storage/*.key
+/backend-core/.env
+/backend-core/.phpunit.result.cache
+
+# Datasets
+/datasets/raw/
+/datasets/processed/
+
+# OS
+.DS_Store
