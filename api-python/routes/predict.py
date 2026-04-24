@@ -11,12 +11,25 @@ from utils.gemini_rag import generate_recommendation
 router = APIRouter()
 
 # Load Model
-MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'model', 'rice_disease_model.h5')
+MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'model', 'model_penyakit_padi_v2_finetuned.h5')
 # Try to load model, handle if not found yet (for boilerplate setup)
+# Workaround for Keras 3 quantization_config bug on Dense layers
+class CustomDense(tf.keras.layers.Dense):
+    @classmethod
+    def from_config(cls, config):
+        config.pop('quantization_config', None)
+        return super().from_config(config)
+
+model_load_error = None
 try:
-    model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+    model = tf.keras.models.load_model(
+        MODEL_PATH, 
+        compile=False, 
+        custom_objects={'Dense': CustomDense}
+    )
 except Exception as e:
-    print(f"Warning: Model not found at {MODEL_PATH}. Prediction will fail until model is provided.")
+    model_load_error = str(e)
+    print(f"Warning: Model not found at {MODEL_PATH} or failed to load. Error: {model_load_error}")
     model = None
 
 # Load Labels
@@ -39,7 +52,7 @@ async def predict(file: UploadFile = File(...)):
         img_array = preprocess_image(contents)
         
         if model is None:
-            return JSONResponse(content={"error": "Model not loaded"}, status_code=500)
+            return JSONResponse(content={"error": f"Model not loaded. Details: {model_load_error}"}, status_code=500)
             
         # 3. Prediksi dengan AI
         prediksi = model.predict(img_array)

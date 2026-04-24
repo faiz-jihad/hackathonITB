@@ -11,7 +11,7 @@ class AIService
     {
         $apiUrl = config('ai.url') . '/predict';
 
-        $response = Http::attach(
+        $response = Http::timeout(30)->attach(
             'file', file_get_contents($file->getRealPath()), $file->getClientOriginalName()
         )->post($apiUrl);
 

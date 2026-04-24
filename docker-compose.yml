@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: deployment/Dockerfile.web
     ports:
-      - "8000:8000"
+      - "8080:8000"
     volumes:
       - ./backend-core:/var/www/html
     environment:
@@ -19,7 +19,7 @@ services:
   db:
     image: mysql:8.0
     ports:
-      - "3306:3306"
+      - "3307:3306"
     environment:
       MYSQL_ROOT_PASSWORD: secret
       MYSQL_DATABASE: backend_core
@@ -31,7 +31,7 @@ services:
       context: .
       dockerfile: deployment/Dockerfile.api
     ports:
-      - "8001:8001"
+      - "8081:8001"
     volumes:
       - ./api-python:/app
 

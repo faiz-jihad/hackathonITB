@@ -10,7 +10,7 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY and GEMINI_API_KEY != "your_google_gemini_api_key_here":
     genai.configure(api_key=GEMINI_API_KEY)
-    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+    gemini_model = genai.GenerativeModel('gemini-2.5-flash')
 else:
     gemini_model = None
 
@@ -53,7 +53,7 @@ def generate_recommendation(disease_name: str, confidence: float) -> str:
     """
     
     try:
-        response = gemini_model.generate_content(prompt)
+        response = gemini_model.generate_content(prompt, request_options={"timeout": 15})
         return response.text.strip()
     except Exception as e:
         return f"Terjadi kesalahan saat menghasilkan rekomendasi dari AI: {str(e)}"
