@@ -5,4 +5,5 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DiagnosaController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/edukasi', function () { return view('pages.edukasi'); })->name('edukasi');
 Route::post('/predict', [DiagnosaController::class, 'predict'])->name('predict');

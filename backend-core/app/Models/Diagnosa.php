@@ -14,5 +14,12 @@ class Diagnosa extends Model
         'disease_name',
         'accuracy',
         'recommendation',
+        'location_name',
+        'latitude',
+        'longitude',
+    ];
+
+    protected $casts = [
+        'recommendation' => 'array',
     ];
 }

@@ -7,13 +7,15 @@ use Illuminate\Http\UploadedFile;
 
 class AIService
 {
-    public function predict(UploadedFile $file)
+    public function predict(UploadedFile $file, $weather = null)
     {
         $apiUrl = config('ai.url') . '/predict';
 
         $response = Http::timeout(30)->attach(
             'file', file_get_contents($file->getRealPath()), $file->getClientOriginalName()
-        )->post($apiUrl);
+        )->post($apiUrl, [
+            'weather' => $weather
+        ]);
 
         if ($response->successful()) {
             return $response->json();

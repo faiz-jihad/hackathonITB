@@ -34,6 +34,15 @@ services:
       - "8081:8001"
     volumes:
       - ./api-python:/app
+    env_file:
+      - ./backend-core/.env
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://web:8000
+    depends_on:
+      - web
 
 volumes:
   db_data:
