@@ -593,6 +593,21 @@ def generate_structured_recommendation(
             "Rekomendasi Obat": "Konsultasikan dengan penyuluh pertanian untuk pestisida yang tepat.",
         }
 
+    # Ambil konteks dari Knowledge Base untuk mencegah AI berhalusinasi
+    disease_info = KNOWLEDGE_BASE.get(nama_penyakit, {})
+    kb_context = ""
+    if disease_info:
+        agronomi = disease_info.get('agronomi_modern', {})
+        pencegahan = agronomi.get('pencegahan', [])
+        pengendalian = agronomi.get('pengendalian', [])
+        
+        kb_context = f"""
+    Referensi Penyakit (DARI BUKU INDUK):
+    - Penyebab: {disease_info.get('scientific_name', '-')}
+    - Pencegahan: {', '.join(pencegahan) if pencegahan else 'Gunakan sanitasi standar'}
+    - Obat/Pengendalian: {', '.join(pengendalian) if pengendalian else 'Konsultasikan dengan penyuluh'}
+    """
+
     prompt = f"""
     Anda adalah pakar agronomi senior. Analisis penyakit padi berikut berdasarkan kondisi lingkungan terkini:
     
@@ -601,39 +616,63 @@ def generate_structured_recommendation(
     - Suhu: {suhu}°C
     - Kelembaban: {kelembaban}%
     - Prediksi Cuaca: {prediksi_cuaca}
+    {kb_context}
     
     Tugas Anda:
-    Berikan solusi penanganan spesifik. Jawaban HARUS dalam format JSON murni dengan key sebagai berikut:
-    1. "Analisis": Penjelasan singkat hubungan antara penyakit dengan kondisi cuaca/suhu saat ini.
-    2. "Langkah Preventif": Tindakan pencegahan agar penyakit tidak menyebar lebih luas (maksimal 3 poin).
-    3. "Rekomendasi Obat": Rekomendasi bahan aktif atau tindakan medis/teknis yang harus diambil.
+    Berikan solusi penanganan spesifik. Anda WAJIB memberikan jawaban dengan membungkus setiap bagian menggunakan TAG XML persis seperti contoh di bawah ini. Jangan tambahkan teks lain di luar tag.
     
-    PENTING: Hanya kembalikan JSON. Jangan ada teks tambahan sebelum atau sesudah JSON.
+    <analisis>
+    (Jelaskan secara singkat MASALAH YANG ADA saat ini berdasarkan hubungan penyakit dengan kondisi cuaca/suhu. Tulis dalam paragraf yang rapi).
+    </analisis>
+    
+    <langkah>
+    (Berikan solusi pencegahan. WAJIB menggunakan rumus "JIKA X, MAKA Y". Gunakan tanda strip "-" atau penomoran jika lebih dari satu poin).
+    </langkah>
+    
+    <obat>
+    (Berikan solusi medis/teknis. WAJIB menggunakan rumus "JIKA X, MAKA Y". Gunakan tanda strip "-" atau penomoran jika lebih dari satu poin).
+    </obat>
     """
 
     try:
-        response = gemini_model.generate_content(prompt)
+        response = gemini_model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                response_mime_type="text/plain",
+                temperature=0.1,
+                max_output_tokens=4096
+            )
+        )
+        
         if not response or not hasattr(response, 'text') or not response.text:
             raise Exception("AI memberikan jawaban kosong atau terblokir filter keamanan.")
             
         text = response.text.strip()
         
-        # Ekstraksi JSON menggunakan Regex agar lebih robust
-        match = re.search(r'\{.*\}', text, re.DOTALL)
-        if match:
-            json_str = match.group(0)
-            data = json.loads(json_str, strict=False)
-            return data
-        else:
-            # Jika tidak ada pola {}, coba parsing langsung
-            data = json.loads(text, strict=False)
-            return data
+        # Ekstraksi menggunakan XML tags yang jauh lebih reliable untuk LLM
+        analisis_match = re.search(r'<analisis>(.*?)</analisis>', text, re.DOTALL | re.IGNORECASE)
+        langkah_match = re.search(r'<langkah>(.*?)</langkah>', text, re.DOTALL | re.IGNORECASE)
+        obat_match = re.search(r'<obat>(.*?)</obat>', text, re.DOTALL | re.IGNORECASE)
+        
+        # Jika salah satu gagal, kita lempar ke exception agar debug info muncul di UI
+        if not analisis_match or not langkah_match or not obat_match:
+            raise Exception("Tag XML tidak lengkap.")
+            
+        return {
+            "Analisis": analisis_match.group(1).strip(),
+            "Langkah Preventif": langkah_match.group(1).strip(),
+            "Rekomendasi Obat": obat_match.group(1).strip()
+        }
+            
     except Exception as e:
         error_msg = str(e)
+        raw_text = getattr(response, 'text', 'NO_TEXT') if 'response' in locals() else 'NO_RESPONSE'
         print(f"[ERROR] Structured LLM Error: {error_msg}")
-        # Fallback response with debug info
+        print(f"[DEBUG] Raw Text: {raw_text}")
+        
+        debug_info = f"Error: {error_msg}. Raw: {raw_text}"
         return {
-            "Analisis": f"Analisis teknis untuk {nama_penyakit} gagal: {error_msg[:100]}...",
-            "Langkah Preventif": "Gunakan varietas tahan dan perbaiki drainase sawah.",
-            "Rekomendasi Obat": "Gunakan fungisida/bakterisida sesuai anjuran PPL setempat.",
+            "Analisis": f"Analisis teknis gagal diproses. Debug: {debug_info}",
+            "Langkah Preventif": "- Pastikan sanitasi lahan terjaga\n- Hindari genangan air berlebih\n- Gunakan varietas tahan",
+            "Rekomendasi Obat": "Konsultasikan dengan penyuluh pertanian (PPL) untuk rekomendasi teknis terbaru."
         }
