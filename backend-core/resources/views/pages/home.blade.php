@@ -44,7 +44,7 @@
             <!-- Stats Grid -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-3xl mx-auto px-2 md:px-0">
                 <div class="bg-white/70 backdrop-blur-sm rounded-2xl p-3 md:p-4 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
-                    <div class="text-xl md:text-3xl font-bold text-emerald-600">95<span class="text-base md:text-lg">%</span></div>
+                    <div class="text-xl md:text-3xl font-bold text-emerald-600">92<span class="text-base md:text-lg">%</span></div>
                     <div class="text-[10px] md:text-xs text-gray-500 mt-1 uppercase tracking-wider">Akurasi AI</div>
                 </div>
                 <div class="bg-white/70 backdrop-blur-sm rounded-2xl p-3 md:p-4 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
@@ -319,6 +319,94 @@
                     </div>
                     <h4 class="font-bold text-gray-900 mb-2">Solusi & Rekomendasi</h4>
                     <p class="text-sm text-gray-600 leading-relaxed">Dapatkan diagnosis lengkap dengan panduan pengobatan dalam bahasa lokal</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detectable Diseases Section -->
+        <div class="mt-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-heading font-black text-gray-900 mb-4 tracking-tight">Apa Saja yang Bisa Dideteksi?</h2>
+                <p class="text-gray-500 max-w-2xl mx-auto">AI kami dilatih untuk mengenali berbagai kategori gangguan tanaman padi, mulai dari infeksi mikrob hingga serangan serangga.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Penyakit Card -->
+                <div class="bg-white/70 backdrop-blur-sm rounded-[2rem] p-8 border border-white shadow-xl">
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center text-3xl">
+                            <i class="ph ph-plant text-emerald-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-black text-gray-900">Kategori Penyakit</h3>
+                            <p class="text-xs text-emerald-600 font-bold uppercase tracking-widest mt-1">Bakteri, Jamur, & Virus</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        @foreach([
+                            ['name' => 'Bacterial Leaf Blight', 'local' => 'Kresek'],
+                            ['name' => 'Bacterial Leaf Streak', 'local' => 'Godhong garis / Kresek garis'],
+                            ['name' => 'Bacterial Panicle Blight', 'local' => 'Hawar malai / Malai bosok'],
+                            ['name' => 'Blast', 'local' => 'Blas / Gulu padi patah'],
+                            ['name' => 'Brown Spot', 'local' => 'Bercak coklat / Bintik godhong'],
+                            ['name' => 'Downy Mildew', 'local' => 'Embun bulu / Jamur alus'],
+                            ['name' => 'Tungro', 'local' => 'Tungro']
+                        ] as $disease)
+                        <div class="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl bg-gray-50/50 border border-transparent hover:border-emerald-200 hover:bg-emerald-50 transition-all duration-300 gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full bg-emerald-400 group-hover:scale-150 transition-transform"></div>
+                                <span class="text-sm font-bold text-gray-700">{{ $disease['name'] }}</span>
+                            </div>
+                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter whitespace-nowrap">Nama Lokal:</span>
+                                <span class="text-[11px] sm:text-xs bg-white px-3 py-1 rounded-full text-emerald-700 font-bold border border-emerald-100 shadow-sm flex-1 sm:flex-none text-center">
+                                    {{ $disease['local'] }}
+                                </span>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Hama Card -->
+                <div class="bg-white/70 backdrop-blur-sm rounded-[2rem] p-6 md:p-8 border border-white shadow-xl">
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center text-3xl">
+                            <i class="ph ph-bug text-amber-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-black text-gray-900">Kategori Hama</h3>
+                            <p class="text-xs text-amber-600 font-bold uppercase tracking-widest mt-1">Serangga & Arthropoda</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        @foreach([
+                            ['name' => 'Dead Heart', 'local' => 'Sundep / Beluk'],
+                            ['name' => 'Hispa', 'local' => 'Kumbang Hispa'],
+                            ['name' => 'Healthy Leaf', 'local' => 'Daun Sehat']
+                        ] as $pest)
+                        <div class="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl bg-gray-50/50 border border-transparent hover:border-amber-200 hover:bg-amber-50 transition-all duration-300 gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full bg-amber-400 group-hover:scale-150 transition-transform"></div>
+                                <span class="text-sm font-bold text-gray-700">{{ $pest['name'] }}</span>
+                            </div>
+                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter whitespace-nowrap">Nama Lokal:</span>
+                                <span class="text-[11px] sm:text-xs bg-white px-3 py-1 rounded-full text-amber-700 font-bold border border-amber-100 shadow-sm flex-1 sm:flex-none text-center">
+                                    {{ $pest['local'] }}
+                                </span>
+                            </div>
+                        </div>
+                        @endforeach
+                        
+                        <!-- Empty space to align with the left card if needed -->
+                        <div class="p-6 md:p-8 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center justify-center text-center">
+                            <i class="bi bi-plus-circle text-gray-300 text-2xl mb-2"></i>
+                            <p class="text-[10px] md:text-xs text-gray-400 font-medium italic">Kategori lainnya sedang <br>dalam proses training AI</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

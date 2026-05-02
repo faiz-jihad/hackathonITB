@@ -22,6 +22,19 @@ class DiagnosaController extends Controller
         $this->bmkgWeatherService = $bmkgWeatherService;
     }
 
+    /**
+     * Prediksi Penyakit Padi (Endpoint Utama Web Form)
+     * 
+     * Endpoint ini menerima gambar daun padi dari user, serta menangkap data
+     * cuaca (Suhu, Kelembapan, Kondisi) berdasarkan lokasi GPS user. Data tersebut 
+     * dikirimkan ke service AI Engine (Python) untuk diinferensi dan diproses
+     * oleh Gemini LLM untuk menghasilkan RAG (Retrieval-Augmented Generation).
+     * 
+     * @param DiagnosaRequest $request Instance request berisi file gambar (max 5MB) dan string cuaca.
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse Merender view hasil (result.blade.php) atau redirect error.
+     * 
+     * @throws \Exception Jika gagal menghubungi microservice AI Engine atau terjadi masalah filesystem.
+     */
     public function predict(DiagnosaRequest $request)
     {
         try {
