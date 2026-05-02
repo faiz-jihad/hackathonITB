@@ -3,15 +3,15 @@
         <div class="flex justify-between items-center h-16">
 
             <!-- Logo -->
-            <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.href='/'">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <i class="bi bi-leaf text-lg"></i>
-                </div>
-                <h1 class="font-bold text-2xl tracking-tight text-gray-900 group-hover:text-emerald-600 transition-colors">
-                    S.E.E.D
-                    <span class="text-emerald-600 text-sm font-semibold align-top ml-1">AI</span>
+            <a href="/" class="flex items-center gap-3 group">
+                <img src="/images/logo.png" alt="MangsaPadi Logo" class="h-10 w-auto group-hover:scale-105 transition-transform duration-300">
+                <h1 class="font-heading font-bold text-xl tracking-tight text-gray-900 group-hover:text-emerald-600 transition-colors hidden sm:block">
+                    <!-- Text Seed -->
+                    <span class="text-emerald-600 text-xs font-semibold align-top ml-0.5">
+                        <!-- AI -->
+                    </span>
                 </h1>
-            </div>
+            </a>
 
             <!-- Desktop Nav -->
             <nav class="hidden md:flex items-center gap-8">
@@ -22,6 +22,10 @@
 
                 <a href="{{ route('edukasi') }}" class="relative text-gray-600 hover:text-emerald-600 font-medium transition">
                     Edukasi
+                </a>
+
+                <a href="{{ route('komunitas.index') }}" class="relative text-gray-600 hover:text-emerald-600 font-medium transition">
+                    Komunitas
                 </a>
             </nav>
             
@@ -64,6 +68,10 @@
 
             <a href="{{ route('edukasi') }}" class="flex items-center gap-3 text-gray-700 hover:text-emerald-600 font-medium">
                 <i class="bi bi-book"></i> Edukasi
+            </a>
+
+            <a href="{{ route('komunitas.index') }}" class="flex items-center gap-3 text-gray-700 hover:text-emerald-600 font-medium">
+                <i class="bi bi-people"></i> Komunitas
             </a>
 
             <!-- CTA -->

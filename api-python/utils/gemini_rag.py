@@ -5,6 +5,8 @@ from typing import Dict, Optional, List, Tuple
 from datetime import datetime
 import google.generativeai as genai
 from dotenv import load_dotenv
+import mysql.connector
+from mysql.connector import Error
 
 load_dotenv()
 
@@ -579,6 +581,31 @@ MangsaPadi - Asisten Pertanian Cerdas
         )
 
 
+def fetch_kearifan_lokal_dari_db(nama_penyakit: str) -> Dict:
+    """Mengambil data kearifan lokal dari MySQL database Laravel."""
+    try:
+        connection = mysql.connector.connect(
+            host=os.getenv("DB_HOST", "db"),
+            database=os.getenv("DB_DATABASE", "backend_core"),
+            user=os.getenv("DB_USERNAME", "root"),
+            password=os.getenv("DB_PASSWORD", "secret")
+        )
+        if connection.is_connected():
+            cursor = connection.cursor(dictionary=True)
+            # Cari berdasarkan keyword nama penyakit
+            query = "SELECT * FROM kearifan_lokals WHERE nama_penyakit LIKE %s ORDER BY created_at DESC LIMIT 1"
+            cursor.execute(query, (f"%{nama_penyakit}%",))
+            record = cursor.fetchone()
+            return record if record else {}
+    except Error as e:
+        print(f"[ERROR DB] Gagal mengambil kearifan lokal: {e}")
+    finally:
+        if 'connection' in locals() and connection.is_connected():
+            cursor.close()
+            connection.close()
+    return {}
+
+
 def generate_structured_recommendation(
     nama_penyakit: str, suhu: float, kelembaban: float, prediksi_cuaca: str
 ) -> Dict:
@@ -608,30 +635,69 @@ def generate_structured_recommendation(
     - Obat/Pengendalian: {', '.join(pengendalian) if pengendalian else 'Konsultasikan dengan penyuluh'}
     """
 
+    # Tambahkan Konteks Kearifan Lokal dari Database
+    kearifan_db = fetch_kearifan_lokal_dari_db(nama_penyakit)
+    if kearifan_db:
+        kb_context += f"""
+    Referensi Kearifan Lokal & Obat dari Admin:
+    - Penanganan RAG: {kearifan_db.get('penanganan_kearifan_lokal', '-')}
+    - Rekomendasi Obat Spesifik: {kearifan_db.get('nama_obat', '-')} ({kearifan_db.get('deskripsi_obat', '-')})
+    """
+
     prompt = f"""
-    Anda adalah pakar agronomi senior. Analisis penyakit padi berikut berdasarkan kondisi lingkungan terkini:
+    Anda adalah pakar agronomi senior Indonesia yang memberi saran langsung ke petani padi.
+    Analisis penyakit berikut berdasarkan kondisi lingkungan terkini dan berikan solusi yang jelas.
     
     Data Input:
     - Nama Penyakit: {nama_penyakit}
-    - Suhu: {suhu}°C
-    - Kelembaban: {kelembaban}%
+    - Suhu Saat Ini: {suhu}°C
+    - Kelembaban Saat Ini: {kelembaban}%
     - Prediksi Cuaca: {prediksi_cuaca}
     {kb_context}
     
-    Tugas Anda:
-    Berikan solusi penanganan spesifik. Anda WAJIB memberikan jawaban dengan membungkus setiap bagian menggunakan TAG XML persis seperti contoh di bawah ini. Jangan tambahkan teks lain di luar tag.
+    INSTRUKSI FORMAT:
+    Berikan jawaban menggunakan TAG XML berikut. Jangan tambahkan teks apapun di luar tag.
+    Gunakan format Markdown di DALAM setiap tag (bold, numbered list, dll) agar mudah dibaca.
     
     <analisis>
-    (Jelaskan secara singkat MASALAH YANG ADA saat ini berdasarkan hubungan penyakit dengan kondisi cuaca/suhu. Tulis dalam paragraf yang rapi).
+    Tulis 1-2 paragraf analisis kondisi tanaman berdasarkan data cuaca.
+    Jelaskan mengapa kondisi saat ini berbahaya/aman untuk penyakit ini.
+    Gunakan **bold** untuk istilah penting. Tulis seperti pakar yang menjelaskan ke petani.
     </analisis>
     
     <langkah>
-    (Berikan solusi pencegahan. WAJIB menggunakan rumus "JIKA X, MAKA Y". Gunakan tanda strip "-" atau penomoran jika lebih dari satu poin).
+    Berikan 4-6 langkah pencegahan dalam format daftar bernomor Markdown:
+    1. **Judul langkah** — penjelasan singkat
+    2. **Judul langkah** — penjelasan singkat
+    Fokus pada tindakan nyata dan praktis yang bisa dilakukan petani.
     </langkah>
     
     <obat>
-    (Berikan solusi medis/teknis. WAJIB menggunakan rumus "JIKA X, MAKA Y". Gunakan tanda strip "-" atau penomoran jika lebih dari satu poin).
+    Berikan 3-5 rekomendasi obat/teknis dalam format daftar bernomor Markdown:
+    1. **Nama obat/teknik** — dosis, cara pakai, dan waktu aplikasi
+    2. **Nama obat/teknik** — dosis, cara pakai, dan waktu aplikasi
+    Sertakan nama bahan aktif dan dosis spesifik jika memungkinkan.
     </obat>
+    
+    <produk>
+    Berikan 3-4 nama produk obat pertanian NYATA yang bisa dibeli petani di toko pertanian atau marketplace online untuk mengatasi penyakit ini.
+    Format WAJIB per baris (satu produk per baris, pisahkan dengan newline):
+    NamaProduk|BahanAktif|KisaranHarga|KataKunciCari
+    
+    Contoh:
+    Nordox 56 WP|Tembaga Oksida 56%|Rp 45.000 - 65.000/250g|fungisida nordox 56 wp
+    Agrept 20 WP|Streptomycin Sulfat 20%|Rp 35.000 - 50.000/50g|bakterisida agrept 20 wp
+    
+    PENTING: Gunakan nama produk yang BENAR-BENAR ADA di pasaran Indonesia. Jangan mengarang nama.
+    </produk>
+    
+    <diy>
+    Berikan 2-3 resep obat racikan sendiri (DIY) dari bahan-bahan murah/alami yang bisa digunakan petani untuk menghemat pengeluaran.
+    Format daftar bernomor Markdown:
+    1. **Nama Racikan** — Bahan: (daftar bahan). Cara buat: (langkah singkat). Cara pakai: (dosis dan frekuensi).
+    2. **Nama Racikan** — Bahan: (daftar bahan). Cara buat: (langkah singkat). Cara pakai: (dosis dan frekuensi).
+    Gunakan bahan yang mudah ditemukan di sekitar petani (bawang putih, kunyit, kapur sirih, abu sekam, dll).
+    </diy>
     """
 
     try:
@@ -649,19 +715,37 @@ def generate_structured_recommendation(
             
         text = response.text.strip()
         
-        # Ekstraksi menggunakan XML tags yang jauh lebih reliable untuk LLM
+        # Ekstraksi menggunakan XML tags
         analisis_match = re.search(r'<analisis>(.*?)</analisis>', text, re.DOTALL | re.IGNORECASE)
         langkah_match = re.search(r'<langkah>(.*?)</langkah>', text, re.DOTALL | re.IGNORECASE)
         obat_match = re.search(r'<obat>(.*?)</obat>', text, re.DOTALL | re.IGNORECASE)
+        produk_match = re.search(r'<produk>(.*?)</produk>', text, re.DOTALL | re.IGNORECASE)
+        diy_match = re.search(r'<diy>(.*?)</diy>', text, re.DOTALL | re.IGNORECASE)
         
-        # Jika salah satu gagal, kita lempar ke exception agar debug info muncul di UI
         if not analisis_match or not langkah_match or not obat_match:
             raise Exception("Tag XML tidak lengkap.")
+        
+        # Parse produk ke list of dicts
+        produk_list = []
+        if produk_match:
+            for line in produk_match.group(1).strip().split('\n'):
+                line = line.strip()
+                if '|' in line:
+                    parts = [p.strip() for p in line.split('|')]
+                    if len(parts) >= 4:
+                        produk_list.append({
+                            "nama": parts[0],
+                            "bahan_aktif": parts[1],
+                            "harga": parts[2],
+                            "keyword": parts[3]
+                        })
             
         return {
             "Analisis": analisis_match.group(1).strip(),
             "Langkah Preventif": langkah_match.group(1).strip(),
-            "Rekomendasi Obat": obat_match.group(1).strip()
+            "Rekomendasi Obat": obat_match.group(1).strip(),
+            "Produk": produk_list,
+            "DIY": diy_match.group(1).strip() if diy_match else ""
         }
             
     except Exception as e:
@@ -674,5 +758,8 @@ def generate_structured_recommendation(
         return {
             "Analisis": f"Analisis teknis gagal diproses. Debug: {debug_info}",
             "Langkah Preventif": "- Pastikan sanitasi lahan terjaga\n- Hindari genangan air berlebih\n- Gunakan varietas tahan",
-            "Rekomendasi Obat": "Konsultasikan dengan penyuluh pertanian (PPL) untuk rekomendasi teknis terbaru."
+            "Rekomendasi Obat": "Konsultasikan dengan penyuluh pertanian (PPL) untuk rekomendasi teknis terbaru.",
+            "Produk": [],
+            "DIY": ""
         }
+

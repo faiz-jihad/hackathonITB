@@ -105,9 +105,9 @@
                         </h3>
                     </div>
                     <div class="p-8">
-                        <p class="text-gray-700 leading-relaxed">
-                            {{ is_array($diagnosa->recommendation) ? ($diagnosa->recommendation['Analisis'] ?? 'Data analisis tidak tersedia.') : $diagnosa->recommendation }}
-                        </p>
+                        <div class="prose prose-emerald max-w-none prose-p:leading-relaxed prose-p:text-gray-700">
+                            {!! \Illuminate\Support\Str::markdown(is_array($diagnosa->recommendation) ? ($diagnosa->recommendation['Analisis'] ?? 'Data analisis tidak tersedia.') : $diagnosa->recommendation) !!}
+                        </div>
                     </div>
                 </div>
 
@@ -121,8 +121,8 @@
                             </h3>
                         </div>
                         <div class="p-8">
-                            <div class="text-gray-700 space-y-2">
-                                {!! nl2br(e($diagnosa->recommendation['Langkah Preventif'] ?? 'N/A')) !!}
+                            <div class="prose prose-blue max-w-none prose-sm prose-li:marker:text-blue-500">
+                                {!! \Illuminate\Support\Str::markdown($diagnosa->recommendation['Langkah Preventif'] ?? 'N/A') !!}
                             </div>
                         </div>
                     </div>
@@ -135,12 +135,82 @@
                             </h3>
                         </div>
                         <div class="p-8">
-                            <div class="text-gray-700 space-y-2">
-                                {!! nl2br(e($diagnosa->recommendation['Rekomendasi Obat'] ?? 'N/A')) !!}
+                            <div class="prose prose-emerald max-w-none prose-sm prose-li:marker:text-emerald-500">
+                                {!! \Illuminate\Support\Str::markdown($diagnosa->recommendation['Rekomendasi Obat'] ?? 'N/A') !!}
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Katalog Produk (Tokopedia) -->
+                @if(!empty($diagnosa->recommendation['Produk']))
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 px-8 py-4 border-b border-emerald-100 flex items-center justify-between">
+                        <h3 class="font-heading font-bold text-gray-900 flex items-center gap-2">
+                            <i class="bi bi-cart3 text-green-600"></i> Katalog Produk — Beli Online
+                        </h3>
+                        <span class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">via Tokopedia</span>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-{{ min(count($diagnosa->recommendation['Produk']), 4) }} gap-4">
+                            @foreach($diagnosa->recommendation['Produk'] as $produk)
+                            <a href="https://www.tokopedia.com/search?q={{ urlencode($produk['keyword'] ?? $produk['nama']) }}" 
+                               target="_blank" rel="noopener"
+                               class="group block bg-white rounded-2xl border border-gray-200 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 overflow-hidden">
+                                <!-- Product Header -->
+                                <div class="bg-gradient-to-br from-emerald-500 to-teal-600 p-4 relative">
+                                    <div class="absolute top-2 right-2 bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full">
+                                        <span class="text-[9px] font-bold text-white uppercase tracking-wide">Beli</span>
+                                    </div>
+                                    <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-2">
+                                        <i class="bi bi-box-seam text-xl text-white"></i>
+                                    </div>
+                                    <h4 class="font-bold text-white text-sm leading-tight">{{ $produk['nama'] }}</h4>
+                                </div>
+                                <!-- Product Body -->
+                                <div class="p-4 space-y-2">
+                                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                                        <i class="bi bi-flask text-emerald-500"></i>
+                                        <span>{{ $produk['bahan_aktif'] }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-bold text-emerald-700">{{ $produk['harga'] }}</span>
+                                    </div>
+                                    <div class="pt-2 border-t border-gray-100 flex items-center justify-between">
+                                        <span class="text-[10px] text-gray-400 flex items-center gap-1">
+                                            <svg viewBox="0 0 24 24" class="w-3 h-3" fill="#42B549"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+                                            Tokopedia
+                                        </span>
+                                        <i class="bi bi-arrow-up-right text-emerald-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform text-xs"></i>
+                                    </div>
+                                </div>
+                            </a>
+                            @endforeach
+                        </div>
+                        <p class="text-[11px] text-gray-400 mt-4 text-center">
+                            <i class="bi bi-info-circle"></i> Harga bersifat estimasi. Klik produk untuk melihat harga terbaru di Tokopedia.
+                        </p>
+                    </div>
+                </div>
+                @endif
+
+                <!-- DIY Racikan Hemat -->
+                @if(!empty($diagnosa->recommendation['DIY']))
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-amber-50 to-yellow-50 px-8 py-4 border-b border-amber-100">
+                        <h3 class="font-heading font-bold text-amber-900 flex items-center gap-2">
+                            <i class="bi bi-flower1 text-amber-500"></i> Racikan Hemat — Obat Alami DIY
+                        </h3>
+                        <p class="text-xs text-amber-600 mt-1">Hemat pengeluaran dengan bahan-bahan yang tersedia di sekitar Anda</p>
+                    </div>
+                    <div class="p-8">
+                        <div class="prose prose-amber max-w-none prose-sm prose-strong:text-amber-800 prose-li:marker:text-amber-500">
+                            {!! \Illuminate\Support\Str::markdown($diagnosa->recommendation['DIY']) !!}
+                        </div>
+                    </div>
+                </div>
+                @endif
+
                 @endif
             </div>
             

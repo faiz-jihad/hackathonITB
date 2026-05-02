@@ -115,6 +115,7 @@
                         <input type="hidden" name="latitude" id="lat-input">
                         <input type="hidden" name="longitude" id="lng-input">
                         <input type="hidden" name="location_name" id="location-name-input">
+                        <input type="hidden" name="weather_info" id="weather-info-input">
 
                         <!-- Info Bar -->
                         <div class="flex flex-col md:flex-row gap-4">
@@ -138,7 +139,18 @@
                                 </span>
                             </div>
 
-                            <!-- Tips -->
+                            <!-- Dynamic Weather (fetched via JS after geolocation) -->
+                            <div id="weather-badge" class="hidden flex-1 items-center gap-3 px-5 py-4 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 animate-fade-in">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                                    <i id="weather-icon" class="bi bi-cloud-sun text-emerald-600 text-lg"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p id="weather-label" class="text-[10px] text-emerald-500 font-semibold uppercase tracking-wider">Cuaca Lokasi Anda</p>
+                                    <p id="weather-detail" class="text-sm font-bold text-emerald-800 truncate">Memuat cuaca...</p>
+                                </div>
+                            </div>
+
+                            <!-- Tips (shown when weather not loaded yet) -->
                             <div id="tips-badge" class="flex-1 flex items-center gap-3 px-5 py-4 rounded-2xl bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-100">
                                 <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
                                     <i class="bi bi-lightbulb text-amber-600 text-lg"></i>
@@ -354,6 +366,7 @@
                             badge.classList.remove('hidden');
                             badge.classList.add('flex');
                             
+                            // === 1. Reverse Geocoding (Nama Lokasi) ===
                              fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&accept-language=id`, {
                                 headers: {
                                     'User-Agent': 'SEED-Rice-Diagnosis-App/1.0'
@@ -371,6 +384,60 @@
                                 .catch(() => {
                                     document.getElementById('location-text').textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
                                     document.getElementById('location-name-input').value = `${lat},${lng}`;
+                                });
+
+                            // === 2. Fetch Cuaca Real-Time dari Open-Meteo (Gratis, tanpa API Key) ===
+                            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`)
+                                .then(res => res.json())
+                                .then(weatherData => {
+                                    const current = weatherData.current;
+                                    const temp = current.temperature_2m;
+                                    const humidity = current.relative_humidity_2m;
+                                    const weatherCode = current.weather_code;
+
+                                    // Map WMO Weather Code ke deskripsi Bahasa Indonesia
+                                    const weatherDesc = {
+                                        0: 'Cerah', 1: 'Cerah Berawan', 2: 'Berawan Sebagian', 3: 'Berawan',
+                                        45: 'Kabut', 48: 'Kabut Beku',
+                                        51: 'Gerimis Ringan', 53: 'Gerimis', 55: 'Gerimis Lebat',
+                                        61: 'Hujan Ringan', 63: 'Hujan Sedang', 65: 'Hujan Lebat',
+                                        71: 'Salju Ringan', 73: 'Salju', 75: 'Salju Lebat',
+                                        80: 'Hujan Lokal', 81: 'Hujan Sedang', 82: 'Hujan Sangat Lebat',
+                                        95: 'Hujan Petir', 96: 'Hujan Petir + Es', 99: 'Hujan Petir Hebat'
+                                    };
+
+                                    // Map WMO code ke ikon Bootstrap
+                                    const weatherIcons = {
+                                        0: 'bi-sun', 1: 'bi-cloud-sun', 2: 'bi-cloud-sun', 3: 'bi-clouds',
+                                        45: 'bi-cloud-fog', 48: 'bi-cloud-fog2',
+                                        51: 'bi-cloud-drizzle', 53: 'bi-cloud-drizzle', 55: 'bi-cloud-drizzle',
+                                        61: 'bi-cloud-rain', 63: 'bi-cloud-rain-heavy', 65: 'bi-cloud-rain-heavy',
+                                        80: 'bi-cloud-rain', 81: 'bi-cloud-rain-heavy', 82: 'bi-cloud-rain-heavy',
+                                        95: 'bi-cloud-lightning-rain', 96: 'bi-cloud-lightning-rain', 99: 'bi-cloud-lightning-rain'
+                                    };
+
+                                    const desc = weatherDesc[weatherCode] || 'Tidak Diketahui';
+                                    const icon = weatherIcons[weatherCode] || 'bi-cloud-sun';
+
+                                    // Update Weather Badge UI
+                                    const weatherBadge = document.getElementById('weather-badge');
+                                    document.getElementById('weather-icon').className = `bi ${icon} text-emerald-600 text-lg`;
+                                    document.getElementById('weather-label').textContent = `Cuaca Saat Ini · ${desc}`;
+                                    document.getElementById('weather-detail').textContent = `${temp}°C · Kelembaban ${humidity}%`;
+                                    
+                                    // Show weather, hide tips
+                                    weatherBadge.classList.remove('hidden');
+                                    weatherBadge.classList.add('flex');
+                                    const tipsBadge = document.getElementById('tips-badge');
+                                    if (tipsBadge) tipsBadge.classList.add('hidden');
+
+                                    // Inject weather string ke hidden form input agar dikirim ke AI
+                                    const weatherString = `Suhu: ${temp}°C, Kelambapan: ${humidity}%, Kondisi: ${desc}`;
+                                    document.getElementById('weather-info-input').value = weatherString;
+                                })
+                                .catch(err => {
+                                    console.warn('Gagal memuat cuaca:', err);
+                                    // Cuaca gagal tidak fatal, Tips Badge tetap tampil
                                 });
                         },
                         (error) => {

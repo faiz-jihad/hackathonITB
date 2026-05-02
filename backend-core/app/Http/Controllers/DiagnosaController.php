@@ -6,29 +6,70 @@ use Illuminate\Http\Request;
 use App\Http\Requests\DiagnosaRequest;
 use App\Services\AIService;
 use App\Services\ImageService;
+use App\Services\BmkgWeatherService;
 use App\Models\Diagnosa;
 
 class DiagnosaController extends Controller
 {
     protected $aiService;
     protected $imageService;
-    protected $weatherService;
+    protected $bmkgWeatherService;
 
-    public function __construct(AIService $aiService, ImageService $imageService, \App\Services\WeatherService $weatherService)
+    public function __construct(AIService $aiService, ImageService $imageService, BmkgWeatherService $bmkgWeatherService)
     {
         $this->aiService = $aiService;
         $this->imageService = $imageService;
-        $this->weatherService = $weatherService;
+        $this->bmkgWeatherService = $bmkgWeatherService;
     }
 
     public function predict(DiagnosaRequest $request)
     {
         try {
+            // Validate additional fields
+            $request->validate([
+                'weather_info' => 'nullable|string|max:200',
+                'latitude' => 'nullable|numeric|between:-90,90',
+                'longitude' => 'nullable|numeric|between:-180,180',
+                'location_name' => 'nullable|string|max:200',
+            ]);
+
             $imagePath = $this->imageService->store($request->file('image'));
             
-            // Get Weather Info
-            $weatherData = $this->weatherService->getWeather($request->latitude, $request->longitude);
-            $weatherString = $weatherData ? "Suhu: {$weatherData['temp']}, Kelambapan: {$weatherData['humidity']}, Kondisi: {$weatherData['condition']}" : null;
+            // Get Weather Info - Priority: Client-side Open-Meteo > Server-side BMKG > Fallback
+            // Sanitize: only allow expected pattern to prevent prompt injection
+            $rawWeather = $request->input('weather_info');
+            $weatherString = null;
+            if ($rawWeather && preg_match('/^Suhu:\s*[\d.]+.*Kelambapan:\s*[\d.]+.*Kondisi:\s*.+$/u', $rawWeather)) {
+                $weatherString = strip_tags(substr($rawWeather, 0, 200));
+            }
+            
+            if ($weatherString) {
+                // Parse weather string from client-side (format: "Suhu: 30°C, Kelambapan: 75%, Kondisi: Cerah")
+                preg_match('/Suhu:\s*([\d.]+)/', $weatherString, $tempMatch);
+                preg_match('/Kelambapan:\s*([\d.]+)/', $weatherString, $humMatch);
+                preg_match('/Kondisi:\s*(.+)$/', $weatherString, $condMatch);
+                
+                $weatherData = [
+                    'temp' => ($tempMatch[1] ?? '28') . '°C',
+                    'humidity' => ($humMatch[1] ?? '80') . '%',
+                    'condition' => $condMatch[1] ?? 'Normal',
+                ];
+            } else {
+                // Fallback ke BMKG jika client tidak mengirim data cuaca
+                $bmkgData = $this->bmkgWeatherService->getCurrentWeather('Indramayu');
+                
+                if (isset($bmkgData['error'])) {
+                    $weatherString = "Suhu: 28°C, Kelambapan: 80%, Kondisi: Normal";
+                    $weatherData = ['temp' => '28°C', 'humidity' => '80%', 'condition' => 'Normal'];
+                } else {
+                    $weatherString = "Suhu: {$bmkgData['Suhu']}, Kelambapan: {$bmkgData['Kelembaban']}, Kondisi: {$bmkgData['Deskripsi Cuaca']}";
+                    $weatherData = [
+                        'temp' => $bmkgData['Suhu'],
+                        'humidity' => $bmkgData['Kelembaban'],
+                        'condition' => $bmkgData['Deskripsi Cuaca'],
+                    ];
+                }
+            }
 
             // Call AI Engine
             $prediction = $this->aiService->predict($request->file('image'), $weatherString);
@@ -39,7 +80,7 @@ class DiagnosaController extends Controller
                 'disease_name' => $prediction['penyakit'] ?? 'Unknown',
                 'accuracy' => $prediction['akurasi'] ?? 0,
                 'recommendation' => $prediction['rekomendasi'] ?? 'Tidak ada rekomendasi.',
-                'location_name' => $request->location_name,
+                'location_name' => strip_tags($request->location_name ?? ''),
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
             ]);
