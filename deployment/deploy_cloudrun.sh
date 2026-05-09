@@ -28,16 +28,20 @@ if [ "$pilihan" == "2" ] || [ "$pilihan" == "4" ]; then
     echo -e "\n[2/3] Deploy AI Engine..."
     # Salin sementara Dockerfile ke root karena gcloud builds submit default membaca ./Dockerfile
     cp deployment/Dockerfile.api Dockerfile
-    gcloud builds submit --tag "gcr.io/$PROJECT_ID/ai-engine" .
-    rm Dockerfile
-    
-    gcloud run deploy ai-engine \
-        --image "gcr.io/$PROJECT_ID/ai-engine" \
-        --platform managed \
-        --region $REGION \
-        --allow-unauthenticated \
-        --port 8001
-    echo "AI Engine berhasil di-deploy!"
+    if gcloud builds submit --tag "gcr.io/$PROJECT_ID/ai-engine" .; then
+        rm Dockerfile
+        gcloud run deploy ai-engine \
+            --image "gcr.io/$PROJECT_ID/ai-engine" \
+            --platform managed \
+            --region $REGION \
+            --allow-unauthenticated \
+            --port 8001
+        echo "AI Engine berhasil di-deploy!"
+    else
+        rm Dockerfile
+        echo "Error: Gagal mem-build image AI Engine. Deployment dihentikan."
+        exit 1
+    fi
 fi
 
 if [ "$pilihan" == "3" ] || [ "$pilihan" == "4" ]; then
@@ -47,18 +51,22 @@ if [ "$pilihan" == "3" ] || [ "$pilihan" == "4" ]; then
     AI_URL=$(gcloud run services describe ai-engine --platform managed --region $REGION --format="value(status.url)")
     
     cp deployment/Dockerfile.web Dockerfile
-    gcloud builds submit --tag "gcr.io/$PROJECT_ID/web-app" .
-    rm Dockerfile
-    
-    gcloud run deploy web-app \
-        --image "gcr.io/$PROJECT_ID/web-app" \
-        --platform managed \
-        --region $REGION \
-        --allow-unauthenticated \
-        --port 8000 \
-        --add-cloudsql-instances=$CONNECTION_NAME \
-        --set-env-vars="DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/$CONNECTION_NAME,DB_DATABASE=backend_core,DB_USERNAME=root,DB_PASSWORD=$DB_PASSWORD,AI_API_URL=$AI_URL,APP_ENV=production,APP_DEBUG=true,APP_KEY=base64:rahasia="
-    echo "Web App berhasil di-deploy!"
+    if gcloud builds submit --tag "gcr.io/$PROJECT_ID/web-app" .; then
+        rm Dockerfile
+        gcloud run deploy web-app \
+            --image "gcr.io/$PROJECT_ID/web-app" \
+            --platform managed \
+            --region $REGION \
+            --allow-unauthenticated \
+            --port 8000 \
+            --add-cloudsql-instances=$CONNECTION_NAME \
+            --set-env-vars="DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/$CONNECTION_NAME,DB_DATABASE=backend_core,DB_USERNAME=root,DB_PASSWORD=$DB_PASSWORD,AI_API_URL=$AI_URL,APP_ENV=production,APP_DEBUG=true,APP_KEY=base64:rahasia="
+        echo "Web App berhasil di-deploy!"
+    else
+        rm Dockerfile
+        echo "Error: Gagal mem-build image Web App. Deployment dihentikan."
+        exit 1
+    fi
 fi
 
 echo -e "\nSelesai! Anda bisa melihat layanan Anda di Google Cloud Console."

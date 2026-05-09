@@ -29,15 +29,21 @@ if ($pilihan -eq '2' -or $pilihan -eq '4') {
     # Build Image
     Copy-Item deployment/Dockerfile.api Dockerfile
     gcloud builds submit --tag "gcr.io/$PROJECT_ID/ai-engine" .
+    $buildStatus = $LASTEXITCODE
     Remove-Item Dockerfile
-    # Deploy
-    gcloud run deploy ai-engine `
-        --image "gcr.io/$PROJECT_ID/ai-engine" `
-        --platform managed `
-        --region $REGION `
-        --allow-unauthenticated `
-        --port 8001
-    Write-Host "AI Engine berhasil di-deploy!"
+    
+    if ($buildStatus -eq 0) {
+        # Deploy
+        gcloud run deploy ai-engine `
+            --image "gcr.io/$PROJECT_ID/ai-engine" `
+            --platform managed `
+            --region $REGION `
+            --allow-unauthenticated `
+            --port 8001
+        Write-Host "AI Engine berhasil di-deploy!"
+    } else {
+        Write-Host "Error: Gagal mem-build image AI Engine. Deployment dihentikan." -ForegroundColor Red
+    }
 }
 
 if ($pilihan -eq '3' -or $pilihan -eq '4') {
@@ -49,18 +55,23 @@ if ($pilihan -eq '3' -or $pilihan -eq '4') {
     # Build Image
     Copy-Item deployment/Dockerfile.web Dockerfile
     gcloud builds submit --tag "gcr.io/$PROJECT_ID/web-app" .
+    $buildStatus = $LASTEXITCODE
     Remove-Item Dockerfile
     
-    # Deploy
-    gcloud run deploy web-app `
-        --image "gcr.io/$PROJECT_ID/web-app" `
-        --platform managed `
-        --region $REGION `
-        --allow-unauthenticated `
-        --port 8000 `
-        --add-cloudsql-instances=$CONNECTION_NAME `
-        --set-env-vars="DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/$CONNECTION_NAME,DB_DATABASE=backend_core,DB_USERNAME=root,DB_PASSWORD=$DB_PASSWORD,AI_API_URL=$AI_URL,APP_ENV=production,APP_DEBUG=true,APP_KEY=base64:rahasia="
-    Write-Host "Web App berhasil di-deploy!"
+    if ($buildStatus -eq 0) {
+        # Deploy
+        gcloud run deploy web-app `
+            --image "gcr.io/$PROJECT_ID/web-app" `
+            --platform managed `
+            --region $REGION `
+            --allow-unauthenticated `
+            --port 8000 `
+            --add-cloudsql-instances=$CONNECTION_NAME `
+            --set-env-vars="DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/$CONNECTION_NAME,DB_DATABASE=backend_core,DB_USERNAME=root,DB_PASSWORD=$DB_PASSWORD,AI_API_URL=$AI_URL,APP_ENV=production,APP_DEBUG=true,APP_KEY=base64:rahasia="
+        Write-Host "Web App berhasil di-deploy!"
+    } else {
+        Write-Host "Error: Gagal mem-build image Web App. Deployment dihentikan." -ForegroundColor Red
+    }
 }
 
 Write-Host "`nSelesai! Untuk menjalankan migrasi database, masuk ke container Web App melalui Cloud Shell dan jalankan 'php artisan migrate --force'."
