@@ -1,9 +1,81 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    @media print {
+        /* Reset and Base Styles */
+        @page { margin: 2cm; size: A4; }
+        body { background: white !important; color: black !important; font-family: 'Inter', sans-serif !important; }
+        .no-print, nav, footer, a[href="/"], button, .ph-plus-circle, .ph-printer { display: none !important; }
+        
+        /* Layout Adjustments */
+        .max-w-6xl { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+        .grid { display: block !important; }
+        .lg\:col-span-4, .lg\:col-span-8 { width: 100% !important; margin-bottom: 2rem !important; }
+        
+        /* Card Styles */
+        .bg-white, .bg-emerald-600, .bg-gray-50, .bg-blue-50, .bg-amber-50 { 
+            background-color: white !important; 
+            border: 1px solid #eee !important; 
+            box-shadow: none !important; 
+            color: black !important;
+            border-radius: 1rem !important;
+        }
+        
+        .text-white { color: black !important; }
+        .text-emerald-100, .text-emerald-200, .text-blue-900, .text-amber-900 { color: #374151 !important; }
+        
+        /* Image Optimization */
+        img { max-height: 300px !important; object-fit: contain !important; border-radius: 0.5rem !important; }
+        
+        /* Header & Brand for Print */
+        .print-header { display: flex !important; align-items: center; justify-content: space-between; border-bottom: 2px solid #10b981; padding-bottom: 1rem; margin-bottom: 2rem; }
+        .print-logo { height: 40px; }
+        .print-title { font-size: 24px; font-weight: 800; color: #065f46; }
+        
+        /* Metadata */
+        .print-meta { display: flex !important; gap: 2rem; font-size: 10px; color: #6b7280; margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 0.1em; }
+        
+        /* Progress Bar for Print */
+        .bg-gray-100 { background-color: #f3f4f6 !important; border: 1px solid #e5e7eb !important; }
+        .bg-gradient-to-r { background: #10b981 !important; }
+        
+        /* Recommendation Sections */
+        .prose { font-size: 12px !important; line-height: 1.6 !important; }
+        h2, h3 { color: #065f46 !important; border-bottom: 1px solid #eee; padding-bottom: 0.5rem; margin-top: 1.5rem !important; }
+        
+        /* Hide Tokopedia Catalog in Print if needed or make it simple */
+        .grid-cols-1.sm\:grid-cols-2 { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 1rem !important; }
+        
+        /* Footer Signature */
+        .print-footer { display: block !important; margin-top: 4rem; border-top: 1px solid #eee; pt-4; text-align: center; font-size: 10px; color: #9ca3af; }
+    }
+    
+    /* Screen-only Styles */
+    .print-header, .print-meta, .print-footer { display: none; }
+</style>
+
+<!-- Print-Only Header -->
+<div class="print-header">
+    <div class="flex items-center gap-3">
+        <img src="/images/logo.png" alt="Logo" class="print-logo">
+        <span class="print-title">S.E.E.D REPORT</span>
+    </div>
+    <div class="text-right">
+        <p class="text-xs font-bold text-gray-500">Agricultural AI Diagnostic</p>
+        <p class="text-[10px] text-gray-400 uppercase tracking-widest">v1.0 Production</p>
+    </div>
+</div>
+
+<div class="print-meta">
+    <div><strong>ID LAPORAN:</strong> #SP-{{ $diagnosa->id }}-{{ date('Ymd') }}</div>
+    <div><strong>TANGGAL ANALISIS:</strong> {{ $diagnosa->created_at->format('d F Y H:i') }}</div>
+    <div><strong>LOKASI:</strong> {{ $diagnosa->location_name ?? 'Koordinat Tersimpan' }}</div>
+</div>
+
 <div class="max-w-6xl mx-auto px-4 pb-12">
     <!-- Header Page -->
-    <div class="flex items-center gap-3 mb-6 md:mb-10">
+    <div class="flex items-center gap-3 mb-6 md:mb-10 no-print">
         <a href="/" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all active:scale-90">
             <i class="bi bi-arrow-left text-xl"></i>
         </a>
@@ -16,7 +88,7 @@
         <div class="lg:col-span-4 space-y-6">
             <!-- Image Card -->
             <div class="bg-white p-3 md:p-4 rounded-[2.5rem] shadow-xl border border-white overflow-hidden relative group">
-                <div class="absolute top-6 right-6 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5 z-10 border border-white/50">
+                <div class="absolute top-6 right-6 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5 z-10 border border-white/50 no-print">
                     <span class="relative flex h-2 w-2">
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -53,15 +125,15 @@
             <!-- Disease Identification Card -->
             <div class="bg-gradient-to-br from-emerald-600 to-emerald-900 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl relative overflow-hidden">
                 <!-- Decorative elements -->
-                <i class="bi bi-cpu text-9xl absolute -bottom-8 -right-8 text-white opacity-10"></i>
+                <i class="bi bi-cpu text-9xl absolute -bottom-8 -right-8 text-white opacity-10 no-print"></i>
                 
                 <div class="relative z-10">
-                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold mb-6 border border-white/10 uppercase tracking-widest">
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold mb-6 border border-white/10 uppercase tracking-widest no-print">
                         <i class="bi bi-check-circle-fill"></i> Identifikasi Akurat
                     </div>
                     <h3 class="text-sm font-bold text-emerald-200/80 mb-2 uppercase tracking-widest">Penyakit Terdeteksi:</h3>
                     <h2 class="text-3xl md:text-5xl font-heading font-black mb-6 leading-tight tracking-tight">{{ $diagnosa->disease_name }}</h2>
-                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-xs font-bold">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-xs font-bold no-print">
                         <i class="bi bi-geo-alt-fill text-emerald-300"></i> {{ $diagnosa->location_name ?? 'Lokasi Terdeteksi' }}
                     </div>
                 </div>
@@ -157,19 +229,17 @@
                             </h3>
                             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Tersedia di Tokopedia</p>
                         </div>
-                        <a href="https://www.tokopedia.com/search?q={{ urlencode($diagnosa->disease_name . ' padi') }}" target="_blank" class="text-emerald-600 font-bold text-xs hover:underline flex items-center gap-1">
+                        <a href="https://www.tokopedia.com/search?q={{ urlencode($diagnosa->disease_name . ' padi') }}" target="_blank" class="text-emerald-600 font-bold text-xs hover:underline flex items-center gap-1 no-print">
                             Lihat Semua <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
                     <div class="p-4 md:p-8">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-{{ min(count($diagnosa->recommendation['Produk']), 4) }} gap-4 md:gap-6">
                             @foreach($diagnosa->recommendation['Produk'] as $produk)
-                            <a href="https://www.tokopedia.com/search?q={{ urlencode($produk['keyword'] ?? $produk['nama']) }}" 
-                               target="_blank" rel="noopener"
-                               class="group block bg-white rounded-3xl border border-gray-100 hover:border-emerald-200 hover:shadow-xl transition-all duration-500 overflow-hidden">
+                            <div class="group block bg-white rounded-3xl border border-gray-100 hover:border-emerald-200 hover:shadow-xl transition-all duration-500 overflow-hidden">
                                 <!-- Product Header -->
                                 <div class="bg-gradient-to-br from-emerald-500 to-teal-700 p-5 relative">
-                                    <div class="absolute top-3 right-3 bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/20">
+                                    <div class="absolute top-3 right-3 bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/20 no-print">
                                         <span class="text-[8px] font-black text-white uppercase tracking-widest">Store</span>
                                     </div>
                                     <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-4">
@@ -185,12 +255,12 @@
                                     </div>
                                     <div class="flex items-center justify-between">
                                         <span class="text-base font-black text-emerald-700">{{ $produk['harga'] }}</span>
-                                        <div class="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
+                                        <a href="https://www.tokopedia.com/search?q={{ urlencode($produk['keyword'] ?? $produk['nama']) }}" target="_blank" class="no-print w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
                                             <i class="bi bi-arrow-up-right text-xs"></i>
-                                        </div>
+                                        </a>
                                     </div>
                                 </div>
-                            </a>
+                            </div>
                             @endforeach
                         </div>
                         <p class="text-[11px] text-gray-400 mt-8 text-center bg-gray-50 py-3 rounded-2xl border border-dashed border-gray-200">
@@ -226,7 +296,7 @@
             </div>
             
             <!-- Actions -->
-            <div class="flex flex-col sm:flex-row gap-4 pt-6">
+            <div class="flex flex-col sm:flex-row gap-4 pt-6 no-print">
                 <a href="/" class="flex-1 bg-white border-2 border-emerald-600 text-emerald-600 font-black py-4 rounded-2xl hover:bg-emerald-50 transition-all text-center flex items-center justify-center gap-3 shadow-lg shadow-emerald-100 active:scale-95">
                     <i class="bi bi-plus-circle text-xl"></i> Pindai Lagi
                 </a>
@@ -237,14 +307,11 @@
 
         </div>
     </div>
-</div>
 
-<style>
-    @media print {
-        .no-print, a[href="/"], button { display: none !important; }
-        .max-w-6xl { max-width: 100% !important; padding: 0 !important; }
-        .shadow-xl, .shadow-2xl, .shadow-sm { shadow: none !important; border: 1px solid #eee !important; }
-        body { background: white !important; }
-    }
-</style>
+    <!-- Print Footer -->
+    <div class="print-footer">
+        <p>Laporan ini dihasilkan secara otomatis oleh sistem AI MangsaPadi S.E.E.D.</p>
+        <p>&copy; 2026 MangsaPadi - Hackathon Ketahanan Pangan Indonesia</p>
+    </div>
+</div>
 @endsection
