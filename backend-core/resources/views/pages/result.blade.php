@@ -95,7 +95,12 @@
                     </span>
                     <span class="text-[10px] font-black text-gray-700 uppercase tracking-tighter">Analisis AI</span>
                 </div>
-                <img src="{{ asset('storage/' . $diagnosa->image_path) }}" alt="Daun Padi" class="w-full h-72 sm:h-80 md:h-64 object-cover rounded-[2rem] group-hover:scale-105 transition-transform duration-700">
+                @php
+                    $imageContent = \Illuminate\Support\Facades\Storage::disk('public')->get($diagnosa->image_path);
+                    $base64Image = base64_encode($imageContent);
+                    $mimeType = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($diagnosa->image_path) ?? 'image/jpeg';
+                @endphp
+                <img src="data:{{ $mimeType }};base64,{{ $base64Image }}" alt="Daun Padi" class="w-full h-72 sm:h-80 md:h-64 object-cover rounded-[2rem] group-hover:scale-105 transition-transform duration-700">
             </div>
 
             <!-- Confidence Metric -->
