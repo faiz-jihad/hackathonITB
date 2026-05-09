@@ -27,7 +27,9 @@ if ($pilihan -eq '1' -or $pilihan -eq '4') {
 if ($pilihan -eq '2' -or $pilihan -eq '4') {
     Write-Host "`n[2/3] Deploy AI Engine..."
     # Build Image
-    gcloud builds submit --tag "gcr.io/$PROJECT_ID/ai-engine" -f deployment/Dockerfile.api .
+    Copy-Item deployment/Dockerfile.api Dockerfile
+    gcloud builds submit --tag "gcr.io/$PROJECT_ID/ai-engine" .
+    Remove-Item Dockerfile
     # Deploy
     gcloud run deploy ai-engine `
         --image "gcr.io/$PROJECT_ID/ai-engine" `
@@ -45,7 +47,9 @@ if ($pilihan -eq '3' -or $pilihan -eq '4') {
     $AI_URL = gcloud run services describe ai-engine --platform managed --region $REGION --format="value(status.url)"
     
     # Build Image
-    gcloud builds submit --tag "gcr.io/$PROJECT_ID/web-app" -f deployment/Dockerfile.web .
+    Copy-Item deployment/Dockerfile.web Dockerfile
+    gcloud builds submit --tag "gcr.io/$PROJECT_ID/web-app" .
+    Remove-Item Dockerfile
     
     # Deploy
     gcloud run deploy web-app `

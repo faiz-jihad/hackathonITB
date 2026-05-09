@@ -19,14 +19,18 @@ read -p "Masukkan pilihan Anda (1/2/3/4): " pilihan
 
 if [ "$pilihan" == "1" ] || [ "$pilihan" == "4" ]; then
     echo -e "\n[1/3] Membuat Database Cloud SQL..."
-    gcloud sql instances create hackathon-db --database-version=MYSQL_8_0 --tier=db-f1-micro --region=$REGION --root-password=$DB_PASSWORD
-    gcloud sql databases create backend_core --instance=hackathon-db
+    gcloud sql instances create hackathon-db-v2 --database-version=MYSQL_8_0 --tier=db-f1-micro --region=$REGION --root-password=$DB_PASSWORD
+    gcloud sql databases create backend_core --instance=hackathon-db-v2
     echo "Cloud SQL berhasil dibuat!"
 fi
 
 if [ "$pilihan" == "2" ] || [ "$pilihan" == "4" ]; then
     echo -e "\n[2/3] Deploy AI Engine..."
-    gcloud builds submit --tag "gcr.io/$PROJECT_ID/ai-engine" -f deployment/Dockerfile.api .
+    # Salin sementara Dockerfile ke root karena gcloud builds submit default membaca ./Dockerfile
+    cp deployment/Dockerfile.api Dockerfile
+    gcloud builds submit --tag "gcr.io/$PROJECT_ID/ai-engine" .
+    rm Dockerfile
+    
     gcloud run deploy ai-engine \
         --image "gcr.io/$PROJECT_ID/ai-engine" \
         --platform managed \
@@ -39,10 +43,12 @@ fi
 if [ "$pilihan" == "3" ] || [ "$pilihan" == "4" ]; then
     echo -e "\n[3/3] Deploy Web App..."
     
-    CONNECTION_NAME=$(gcloud sql instances describe hackathon-db --format="value(connectionName)")
+    CONNECTION_NAME=$(gcloud sql instances describe hackathon-db-v2 --format="value(connectionName)")
     AI_URL=$(gcloud run services describe ai-engine --platform managed --region $REGION --format="value(status.url)")
     
-    gcloud builds submit --tag "gcr.io/$PROJECT_ID/web-app" -f deployment/Dockerfile.web .
+    cp deployment/Dockerfile.web Dockerfile
+    gcloud builds submit --tag "gcr.io/$PROJECT_ID/web-app" .
+    rm Dockerfile
     
     gcloud run deploy web-app \
         --image "gcr.io/$PROJECT_ID/web-app" \
