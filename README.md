@@ -445,7 +445,25 @@ Akses `/admin/login` lalu registrasi admin baru menggunakan kode akses yang ada 
 
 ## 🚢 Deployment Guideline
 
-### A. Deploy via Docker (Produksi)
+### A. Deploy ke Google Cloud Run (Sangat Direkomendasikan)
+
+Kami menyediakan script otomatis untuk men-deploy aplikasi ini ke **Google Cloud Run** dan **Cloud SQL**.
+
+**Cara Termudah (Menggunakan Google Cloud Shell):**
+1. Buka [Google Cloud Console](https://console.cloud.google.com).
+2. Aktifkan **Cloud Shell** (ikon terminal `>_` di pojok kanan atas).
+3. Jalankan perintah berikut:
+   ```bash
+   git clone https://github.com/faiz-jihad/hackathonITB.git seed-ai
+   cd seed-ai
+   chmod +x deployment/deploy_cloudrun.sh
+   ./deployment/deploy_cloudrun.sh
+   ```
+4. Masukkan **Project ID** Anda, lalu pilih **opsi 4** untuk membuat Database dan men-deploy semua service secara otomatis.
+
+*(Bagi pengguna Windows lokal, tersedia juga script `deployment/deploy_cloudrun.ps1`)*
+
+### B. Deploy via Docker (VPS / Server Pribadi)
 
 ```bash
 # 1. Pastikan .env sudah dikonfigurasi untuk produksi
@@ -470,7 +488,7 @@ docker-compose exec web php artisan view:cache
 docker-compose up -d tunnel
 ```
 
-### B. Checklist Sebelum Deploy
+### C. Checklist Sebelum Deploy
 
 - [ ] `APP_DEBUG=false`
 - [ ] `APP_ENV=production`
@@ -481,7 +499,7 @@ docker-compose up -d tunnel
 - [ ] `CACHE_STORE=file` (atau `redis` jika tersedia)
 - [ ] Model AI (`model_penyakit_padi_v2_finetuned.h5`) tersedia di `api-python/model/`
 
-### C. Perintah Maintenance
+### D. Perintah Maintenance
 
 ```bash
 # Membersihkan semua cache
